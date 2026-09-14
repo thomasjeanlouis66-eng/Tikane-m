@@ -4,7 +4,7 @@
 
 window.TIKANE_SUPABASE = {
   url: 'https://bhuqtrrxmfmmroctecgd.supabase.co',
-  anonKey: 'sb_publishable_9fu_AWUDljxRit42M6yUDg_23nZE7'
+  anonKey: 'sb_publishable_9fu_AWUDljxRit42M6yUDg_23nZEe7O'
 };
 
 (function(){
