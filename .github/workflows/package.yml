@@ -1,0 +1,23 @@
+name: Package Tikane-m
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create ZIP
+        run: zip -r Tikane-m.zip . -x '.git/*' '.github/workflows/package.yml'
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tikane-m
+          path: Tikane-m.zip
+          if-no-files-found: error
