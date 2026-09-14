@@ -2,8 +2,6 @@
 // This key is a publishable/anon key. NEVER put a service_role key here.
 window.TIKANE_SUPABASE={url:'https://bhuqtrrxmfmmroctecgd.supabase.co',anonKey:'sb_publishable_9fu_AWUDljxRit42M6yUDg_23nZE7'};
 
-// Safe boot fallback for the authentication buttons.
-// This file is deferred, so it runs after the Supabase CDN script and after the HTML is parsed.
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
@@ -25,25 +23,20 @@ window.TIKANE_SUPABASE={url:'https://bhuqtrrxmfmmroctecgd.supabase.co',anonKey:'
     return `<section class="screen fade"><header class="hero"><div class="topbar"><span></span><div class="brand"><div class="logo-mark">TM</div><div><b>Ti Kanè m</b><small>Sere jodi, bati demen.</small></div></div><button class="iconbtn" onclick="go('login')">↪</button></div></header><div class="content"><div class="card"><small>☀️ Bonjou</small><h2>${esc(name||'Vizitè')}</h2><p class="muted">Ou konekte avèk siksè.</p></div><div class="banner"><b>Byenveni sou Ti Kanè m</b><span>Sere jodi, bati demen.</span></div></div></section>`;
   }
   window.go=function(route){
-    try{
-      if(typeof window[route]==='function' && route!=='go'){ window[route](); return; }
-    }catch(e){ console.error(e); }
+    try{ if(typeof window[route]==='function' && route!=='go'){ window[route](); return; } }catch(e){ console.error(e); }
     const target=route==='welcome'?fallbackWelcome():route==='login'?fallbackLogin():route==='register'?fallbackRegister():fallbackHome();
     const app=$('app'); if(app) app.innerHTML=target;
     window.scrollTo(0,0);
   };
   window.doLogin=async function(){
-    const email=($('loginEmail')?.value||'').trim();
-    const password=$('loginPass')?.value||'';
+    const email=($('loginEmail')?.value||'').trim(),password=$('loginPass')?.value||'';
     if(!email||!password){toastMsg('Tanpri ranpli imèl ak modpas la.');return;}
     if(!client){toastMsg('Koneksyon ak sèvè a pa disponib.');return;}
     const btn=document.querySelector('[onclick="doLogin()"]');if(btn){btn.disabled=true;btn.textContent='Konekte...';}
     const {data,error}=await client.auth.signInWithPassword({email,password});
     if(error){toastMsg(error.message||'Imèl oswa modpas la pa kòrèk.');if(btn){btn.disabled=false;btn.textContent='Konekte';}return;}
-    window.__tikaneSession=data.session||null;
-    toastMsg('Koneksyon reyisi.');
-    const name=data.user?.user_metadata?.full_name||'Itilizatè';
-    const app=$('app');if(app)app.innerHTML=fallbackHome(name);
+    window.__tikaneSession=data.session||null;toastMsg('Koneksyon reyisi.');
+    const app=$('app');if(app)app.innerHTML=fallbackHome(data.user?.user_metadata?.full_name||'Itilizatè');
   };
   window.doRegister=async function(){
     const name=($('regName')?.value||'').trim(),email=($('regEmail')?.value||'').trim(),phone=($('regPhone')?.value||'').trim(),password=$('regPass')?.value||'';
@@ -56,5 +49,12 @@ window.TIKANE_SUPABASE={url:'https://bhuqtrrxmfmmroctecgd.supabase.co',anonKey:'
     if(data.session){window.__tikaneSession=data.session;toastMsg('Kont la kreye avèk siksè.');const app=$('app');if(app)app.innerHTML=fallbackHome(name);}
     else {toastMsg('Kont la kreye. Verifye imèl ou an pou aktive li.');window.go('login');}
   };
-  window.addEventListener('error',e=>{if(e?.message)console.error('Ti Kane m:',e.message)});
+  // Capture navigation clicks before the main app script. This keeps the two welcome buttons working even if a later script fails to parse.
+  document.addEventListener('click',function(e){
+    const el=e.target.closest && e.target.closest('[onclick]');
+    if(!el)return;
+    const code=el.getAttribute('onclick')||'';
+    const m=code.match(/^go\(['\"]([^'\"]+)['\"]\)$/);
+    if(m){e.preventDefault();e.stopImmediatePropagation();window.go(m[1]);}
+  },true);
 })();
