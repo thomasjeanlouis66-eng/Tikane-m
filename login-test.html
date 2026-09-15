@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ht">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0754c8">
+<title>Konekte — Ti Kanè m</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="public/supabase-config.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f5f7fa;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+.card{
+  width:90%;
+  max-width:420px;
+  background:white;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,.10);
+  box-sizing:border-box;
+}
+h1{
+  text-align:center;
+  margin-top:0;
+}
+input{
+  width:100%;
+  padding:13px;
+  margin:8px 0;
+  box-sizing:border-box;
+  border:1px solid #ccc;
+  border-radius:9px;
+  font-size:16px;
+}
+button{
+  width:100%;
+  padding:13px;
+  margin-top:10px;
+  border:0;
+  border-radius:9px;
+  font-size:16px;
+  cursor:pointer;
+}
+.primary{
+  background:#0754c8;
+  color:white;
+}
+.secondary{
+  background:#eee;
+}
+#msg{
+  text-align:center;
+  margin-top:12px;
+}
+</style>
+</head>
+
+<body>
+
+<section class="card">
+  <h1>Ti Kanè m</h1>
+
+  <h2>Konekte</h2>
+
+  <input
+    id="email"
+    type="email"
+    placeholder="Imèl"
+    autocomplete="email">
+
+  <input
+    id="password"
+    type="password"
+    placeholder="Modpas"
+    autocomplete="current-password">
+
+  <button class="primary" onclick="login()">
+    Konekte
+  </button>
+
+  <button class="secondary" onclick="goRegister()">
+    Kreye yon kont
+  </button>
+
+  <p id="msg"></p>
+</section>
+
+<script>
+let sb=null;
+
+function init(){
+  if(window.supabase?.createClient &&
+     window.TIKANE_SUPABASE?.url){
+
+    sb=window.supabase.createClient(
+      window.TIKANE_SUPABASE.url,
+      window.TIKANE_SUPABASE.anonKey
+    );
+  }
+}
+
+async function login(){
+
+  const msg=document.getElementById('msg');
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+
+  if(!sb){
+    msg.textContent='Sèvis koneksyon an poko disponib.';
+    return;
+  }
+
+  if(!email || !password){
+    msg.textContent='Mete imèl ak modpas.';
+    return;
+  }
+
+  msg.textContent='Koneksyon ap fèt...';
+
+  const {data,error}=await sb.auth.signInWithPassword({
+    email:email,
+    password:password
+  });
+
+  if(error){
+    msg.textContent=error.message;
+    return;
+  }
+
+  if(data?.session){
+
+    msg.textContent='Koneksyon reyisi ✔';
+
+    setTimeout(()=>{
+      window.location.href='./index-test.html';
+    },500);
+
+  }else{
+    msg.textContent='Koneksyon an pa jwenn session.';
+  }
+}
+
+function goRegister(){
+  window.location.href='./register.html';
+}
+
+init();
+</script>
+
+</body>
+</html>
