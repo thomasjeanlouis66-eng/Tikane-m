@@ -50,7 +50,48 @@ function chat(){return '<section class="screen fade">'+top('Chat','Mesaj ou yo',
 function profile(){const name=session?.user?.user_metadata?.full_name||profileData?.full_name||'Vizitè';return '<section class="screen fade">'+top('Pwofil','Kont mwen',true)+'<div class="content"><div class="profile-head"><div class="avatar">'+safe(name.charAt(0).toUpperCase())+'</div><div><h2 style="margin:0">'+safe(name)+'</h2><small>'+safe(session?.user?.email||'Mòd envite')+'</small></div></div><div class="menu"><button onclick="go(\'orders\')">📋 &nbsp; Kòmand mwen yo</button><button onclick="go(\'settings\')">⚙️ &nbsp; Anviwònman</button>'+(session?'<button onclick="logout()">🚪 &nbsp; Dekonekte</button>':'<button onclick="go(\'login\')">🔐 &nbsp; Konekte</button>')+'</div></div>'+nav('profile')+'</section>'}
 function orders(){return '<section class="screen fade">'+top('Kòmand mwen yo','Suivi aktivite ou',true)+'<div class="content"><div class="card empty"><div style="font-size:45px">📋</div><h3>Pa gen kòmand ankò</h3><p>Chwazi yon plan pou premye kòmand ou.</p><button class="btn primary" onclick="go(\'plans\')">Gade plan yo</button></div></div></section>'}
 function settings(){return '<section class="screen fade">'+top('Anviwònman','Preferans aplikasyon an',true)+'<div class="content"><div class="menu"><button>🔒 &nbsp; Sekirite kont</button><button>🌐 &nbsp; Lang: Kreyòl ayisyen</button><button>🔔 &nbsp; Notifikasyon</button><button>ℹ️ &nbsp; Sou Ti Kanè m</button></div><div class="card" style="margin-top:14px"><b>Ti Kanè m</b><p class="muted">Sere jodi, bati demen.</p></div></div></section>'}
-async function loadUser(){if(!sb)return;try{const r=await sb.auth.getSession();session=r.data?.session||null;if(session){const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();profileData=p.data||null}}catch(e){session=null;profileData=null}}
+async function loadUser(){
+  if(!sb) return;
+
+  try{
+    const {data,error}=await sb.auth.getSession();
+
+    if(error){
+      console.error('Session error:',error);
+      session=null;
+      profileData=null;
+      return;
+    }
+
+    session=data.session || null;
+  }catch(e){
+    console.error('Session error:',e);
+    session=null;
+    profileData=null;
+    return;
+  }
+
+  // Chèche profile a san li pa efase session si gen yon pwoblèm RLS
+  profileData=null;
+
+  if(session){
+    try{
+      const {data,error}=await sb
+        .from('profiles')
+        .select('*')
+        .eq('user_id',session.user.id)
+        .maybeSingle();
+
+      if(!error){
+        profileData=data || null;
+      }else{
+        console.warn('Profile error:',error);
+      }
+    }catch(e){
+      console.warn('Profile error:',e);
+    }
+  }
+}
 async function doLogin(){if(!sb)return toast('Sèvis koneksyon an poko disponib');const e=document.getElementById('loginEmail').value.trim(),p=document.getElementById('loginPass').value;if(!e||!p)return toast('Mete imèl ak modpas');const r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)return toast(r.error.message);await loadUser();toast('Koneksyon reyisi ✔');go('home')}
 async function doRegister(){if(!sb)return toast('Sèvis enskripsyon an poko disponib');const n=document.getElementById('regName').value.trim(),e=document.getElementById('regEmail').value.trim(),p=document.getElementById('regPhone').value.trim(),pw=document.getElementById('regPass').value;if(n.length<2||!e||pw.length<6)return toast('Tanpri ranpli enfòmasyon yo');const r=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n,phone:p}}});if(r.error)return toast(r.error.message);toast(r.data.session?'Kont kreye ✔':'Verifye imèl ou ✔');go(r.data.session?'home':'login')}
 async function confirmOrder(){if(!sb||!session)return toast('Koneksyon Supabase pa disponib');const n=document.getElementById('orderName').value.trim(),p=document.getElementById('orderPhone').value.trim(),d=document.getElementById('orderDate').value;if(!n||!p||!d)return toast('Ranpli non, telefòn ak dat');const r=await sb.from('customer_plans').insert({user_id:session.user.id,plan_id:selected[0]+'-'+selected[1],full_name:n,phone:p,start_date:d});if(r.error)return toast(r.error.message);toast('Kòmand lan voye ✔');go('orders')}
