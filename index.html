@@ -5,118 +5,55 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0754c8">
 <title>Ti Kanè m</title>
-<link rel="stylesheet" href="public/style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-<script src="public/supabase-config.js" defer></script>
+<link rel="stylesheet" href="public/style.css?v=4">
 </head>
 <body>
 <main id="app" class="app">
-  <section class="welcome fade">
-    <div><div class="brand"><div class="logo-mark">TM</div><div><b>Ti Kanè m</b><small>Sere jodi, bati demen.</small></div></div></div>
-    <div class="welcome-main">
-      <div class="welcome-art">🧑🏾‍💼</div>
-      <h1>Kòmanse bati<br><strong>pwòjè w</strong></h1>
-      <p>Sere jodi, bati demen. Chwazi plan ki mache ak objektif ou.</p>
-      <div class="paybox"><b>Metòd peman</b><div class="payrow"><div class="pay">💳<br>NatCash</div><div class="pay">💳<br>MonCash</div><div class="pay">💵<br>Cash</div></div></div>
-    </div>
-    <div><button class="btn primary" onclick="go('login')">Konekte</button><button class="btn light" onclick="go('register')">Enskri</button><button class="btn" style="background:transparent;color:#fff;border:1px solid #ffffff66" onclick="go('home')">Kontinye kòm envite</button></div>
-  </section>
-</main>
+<section class="welcome fade">
+<div><div class="brand"><div class="logo-mark">TM</div><div><b>Ti Kanè m</b><small>Sere jodi, bati demen.</small></div></div></div>
+<div class="welcome-main"><div class="welcome-art">🧑🏾‍💼</div><h1>Kòmanse bati<br><strong>pwòjè w</strong></h1><p>Sere jodi, bati demen. Chwazi plan ki mache ak objektif ou.</p><div class="paybox"><b>Metòd peman</b><div class="payrow"><div class="pay">💳<br>NatCash</div><div class="pay">💳<br>MonCash</div><div class="pay">💵<br>Cash</div></div></div></div>
+<div><button type="button" class="btn primary" id="welcomeLogin">Konekte</button><button type="button" class="btn light" id="welcomeRegister">Enskri</button><button type="button" class="btn" style="background:transparent;color:#fff;border:1px solid #ffffff66" id="welcomeGuest">Kontinye kòm envite</button></div>
+</section></main>
 <div id="toast"></div>
 <noscript><div style="position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;background:#f5f7fb;font-family:system-ui">Tanpri aktive JavaScript nan navigatè a pou itilize Ti Kanè m.</div></noscript>
 <script>
 'use strict';
 const progressive=[['Plan 1','5G'],['Plan 2','10G'],['Plan 3','25G'],['Plan 4','50G'],['Plan 5','100G']],fixedPlans=[['Plan250G','250G'],['Plan500G','500G'],['Plan1000G','1000G']];
-let sb=null,session=null,profileData=null,selected=progressive[0];
+let session=null,profileData=null,selected=progressive[0],sb=null;
 const app=document.getElementById('app');
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}
 function logo(){return '<div class="brand"><div class="logo-mark">TM</div><div><b>Ti Kanè m</b><small>Sere jodi, bati demen.</small></div></div>'}
 function top(title='',sub='',back=true){return '<header class="hero"><div class="topbar">'+(back?'<button type="button" class="iconbtn" onclick="go(\'home\');return false">‹</button>':'<span></span>')+'<div>'+logo()+'</div><button type="button" class="iconbtn" onclick="go(\'settings\');return false">⚙</button></div>'+(title?'<h1 class="title" style="color:#fff">'+safe(title)+'</h1>':'')+(sub?'<div style="opacity:.85">'+safe(sub)+'</div>':'')+'</header>'}
 function nav(a){return '<nav class="bottom"><button type="button" class="nav '+(a==='home'?'active':'')+'" onclick="go(\'home\');return false"><span>⌂</span>Akèy</button><button type="button" class="nav '+(a==='chat'?'active':'')+'" onclick="go(\'chat\');return false"><span>💬</span>Chat</button><button type="button" class="nav '+(a==='market'?'active':'')+'" onclick="go(\'market\');return false"><span>▦</span>Market</button><button type="button" class="nav '+(a==='plans'?'active':'')+'" onclick="go(\'plans\');return false"><span>▣</span>Plan yo</button><button type="button" class="nav '+(a==='profile'?'active':'')+'" onclick="go(\'profile\');return false"><span>♙</span>Pwofil</button></nav>'}
-function welcome(){return '<section class="welcome fade"><div>'+logo()+'</div><div class="welcome-main"><div class="welcome-art">🧑🏾‍💼</div><h1>Kòmanse bati<br><strong>pwòjè w</strong></h1><p>Sere jodi, bati demen. Chwazi plan ki mache ak objektif ou.</p><div class="paybox"><b>Metòd peman</b><div class="payrow"><div class="pay">💳<br>NatCash</div><div class="pay">💳<br>MonCash</div><div class="pay">💵<br>Cash</div></div></div></div><div><button class="btn primary" onclick="go(\'login\')">Konekte</button><button class="btn light" onclick="go(\'register\')">Enskri</button><button class="btn" style="background:transparent;color:#fff;border:1px solid #ffffff66" onclick="go(\'home\')">Kontinye kòm envite</button></div></section>'}
-function login(){return '<section class="screen fade">'+top('Byenveni tounen !','Konekte ak kont ou',false)+'<div class="content"><div class="card"><h2 class="title">Konekte</h2><p class="muted">Antre enfòmasyon kont ou.</p><label>Imèl<input id="loginEmail" class="input" type="email" placeholder="egzanp@email.com"></label><label>Modpas<input id="loginPass" class="input" type="password" placeholder="••••••••"></label><button type="button" class="btn blue" onclick="doLogin()">Konekte</button><button type="button" class="btn ghost" onclick="go(\'register\');return false">Kreye yon kont</button></div></div></section>'}
-function register(){return '<section class="screen fade">'+top('Kreye kont','Enskri pou kòmanse',true)+'<div class="content"><div class="card"><h2 class="title">Nou kontan wè w</h2><label>Non konplè<input id="regName" class="input" placeholder="Non ou"></label><label>Imèl<input id="regEmail" class="input" type="email" placeholder="egzanp@email.com"></label><label>Telefòn<input id="regPhone" class="input" placeholder="+509 ..."></label><label>Modpas<input id="regPass" class="input" type="password" placeholder="Omwen 6 karaktè"></label><button type="button" class="btn primary" onclick="doRegister()">Kreye kont</button></div></div></section>'}
+function welcome(){return '<section class="welcome fade"><div>'+logo()+'</div><div class="welcome-main"><div class="welcome-art">🧑🏾‍💼</div><h1>Kòmanse bati<br><strong>pwòjè w</strong></h1><p>Sere jodi, bati demen. Chwazi plan ki mache ak objektif ou.</p><div class="paybox"><b>Metòd peman</b><div class="payrow"><div class="pay">💳<br>NatCash</div><div class="pay">💳<br>MonCash</div><div class="pay">💵<br>Cash</div></div></div></div><div><button type="button" class="btn primary" onclick="go(\'login\');return false">Konekte</button><button type="button" class="btn light" onclick="go(\'register\');return false">Enskri</button><button type="button" class="btn" style="background:transparent;color:#fff;border:1px solid #ffffff66" onclick="go(\'home\');return false">Kontinye kòm envite</button></div></section>'}
+function login(){return '<section class="screen fade">'+top('Byenveni tounen !','Konekte ak kont ou',false)+'<div class="content"><div class="card"><h2 class="title">Konekte</h2><p class="muted">Antre enfòmasyon kont ou.</p><label>Imèl<input id="loginEmail" class="input" type="email" placeholder="egzanp@email.com"></label><label>Modpas<input id="loginPass" class="input" type="password" placeholder="••••••••"></label><button type="button" class="btn blue" onclick="doLogin();return false">Konekte</button><button type="button" class="btn ghost" onclick="go(\'register\');return false">Kreye yon kont</button></div></div></section>'}
+function register(){return '<section class="screen fade">'+top('Kreye kont','Enskri pou kòmanse',true)+'<div class="content"><div class="card"><h2 class="title">Nou kontan wè w</h2><label>Non konplè<input id="regName" class="input" placeholder="Non ou"></label><label>Imèl<input id="regEmail" class="input" type="email" placeholder="egzanp@email.com"></label><label>Telefòn<input id="regPhone" class="input" placeholder="+509 ..."></label><label>Modpas<input id="regPass" class="input" type="password" placeholder="Omwen 6 karaktè"></label><button type="button" class="btn primary" onclick="doRegister();return false">Kreye kont</button></div></div></section>'}
 function home(){return '<section class="screen fade">'+top('','',false)+'<div class="content"><div class="card"><small>☀️ Bonjou</small><h2 style="margin:6px 0">'+safe(session?.user?.user_metadata?.full_name||profileData?.full_name||'Vizitè')+'</h2><div class="muted">Pare pou pran pwochen etap la?</div></div><div class="banner"><b>Chwazi plan ou</b><span>5 plan pwogresif + 3 plan fikse</span><button type="button" class="btn primary" onclick="go(\'plans\');return false">Gade plan yo →</button></div><div class="section-head"><h2>Aksyon rapid</h2></div><div class="grid2"><button type="button" class="quick" onclick="go(\'plans\');return false"><span>▣</span>Plan yo</button><button type="button" class="quick" onclick="go(\'market\');return false"><span>🛒</span>Marketplace</button><button type="button" class="quick" onclick="go(\'chat\');return false"><span>💬</span>Chat</button><button type="button" class="quick" onclick="go(\'profile\');return false"><span>♙</span>Pwofil</button></div><div class="section-head"><h2>Ti Kanè m</h2></div><div class="card"><b>Sere jodi, bati demen.</b><p class="muted">Tout plan ak sèvis yo nan yon sèl aplikasyon.</p></div></div>'+nav('home')+'</section>'}
 function planCards(list){return list.map(p=>'<button type="button" class="plan-card" onclick="selectPlan(\''+p[0]+'\',\''+p[1]+'\');return false"><div><span class="tag">'+safe(p[0])+'</span><h3>Plan '+safe(p[1])+'</h3><small class="muted">Kantite chak jou</small></div><div class="amount">'+safe(p[1])+'</div></button>').join('')}
 function plans(){return '<section class="screen fade">'+top('Plan yo','Chwazi yon plan',true)+'<div class="content"><div class="plan-tabs"><button type="button" class="active">Pwogresif</button><button type="button" onclick="go(\'fixed\');return false">Fikse</button></div>'+planCards(progressive)+'<div class="card"><b>Plan pwogresif</b><p class="muted">5G → 10G → 25G → 50G → 100G.</p></div></div>'+nav('plans')+'</section>'}
 function fixed(){return '<section class="screen fade">'+top('Plan yo','Plan fikse',true)+'<div class="content"><div class="plan-tabs"><button type="button" onclick="go(\'plans\');return false">Pwogresif</button><button type="button" class="active">Fikse</button></div>'+planCards(fixedPlans)+'<div class="card"><b>Plan fikse</b><p class="muted">250G, 500G oswa 1000G chak jou.</p></div></div>'+nav('plans')+'</section>'}
 function selectPlan(n,a){selected=[n,a];go('detail')}
 function detail(){return '<section class="screen fade">'+top('Detay plan',selected[1]+' pa jou',true)+'<div class="content"><div class="card" style="text-align:center"><div style="font-size:42px">🌐</div><div class="detail-amount">'+safe(selected[1])+'</div><span class="tag">CHAK JOU</span><h2>'+safe(selected[0])+'</h2><p class="muted">Yon plan senp pou ede w òganize objektif ou.</p></div><button type="button" class="btn primary" onclick="go(\'order\');return false">Kòmande kounye a →</button></div>'+nav('plans')+'</section>'}
-function order(){if(!session)return '<section class="screen">'+top('Kòmande','Konekte anvan',true)+'<div class="content"><div class="card"><h2>Konekte pou kontinye</h2><p class="muted">Ou bezwen yon kont pou voye kòmand lan.</p><button type="button" class="btn blue" onclick="go(\'login\');return false">Konekte</button></div></div></section>';return '<section class="screen fade">'+top('Kòmande','Plan '+selected[1],true)+'<div class="content"><div class="card"><h3>'+safe(selected[0])+'</h3><div class="summary"><span>Plan</span><b>'+safe(selected[1])+'</b></div><label>Non konplè<input id="orderName" class="input" value="'+safe(profileData?.full_name||session.user.user_metadata?.full_name||'')+'"></label><label>Telefòn<input id="orderPhone" class="input" value="'+safe(profileData?.phone||session.user.user_metadata?.phone||'')+'"></label><label>Dat kòmansman<input id="orderDate" class="input" type="date"></label><button type="button" class="btn primary" onclick="confirmOrder()">Konfime kòmand lan</button></div></div></section>'}
+function order(){return '<section class="screen fade">'+top('Kòmande','Plan '+safe(selected[1]),true)+'<div class="content"><div class="card"><h3>'+safe(selected[0])+'</h3><div class="summary"><span>Plan</span><b>'+safe(selected[1])+'</b></div><label>Non konplè<input id="orderName" class="input" value="'+safe(profileData?.full_name||session?.user?.user_metadata?.full_name||'')+'"></label><label>Telefòn<input id="orderPhone" class="input" value="'+safe(profileData?.phone||session?.user?.user_metadata?.phone||'')+'"></label><label>Dat kòmansman<input id="orderDate" class="input" type="date"></label><button type="button" class="btn primary" onclick="confirmOrder();return false">Konfime kòmand lan</button></div></div></section>'}
 function market(){return '<section class="screen fade">'+top('Marketplace','Achte oswa vann',true)+'<div class="content"><div class="card"><h2 class="title">Marketplace</h2><p class="muted">Dekouvri pwodwi ak sèvis kominote a.</p></div><div class="market-grid"><div class="product"><div class="product-img">📱</div><div class="product-body"><b>Pwodwi dijital</b><span class="price">Disponib byento</span></div></div><div class="product"><div class="product-img">🛍️</div><div class="product-body"><b>Pwodwi lokal</b><span class="price">Disponib byento</span></div></div></div><button type="button" class="btn primary" onclick="go(\'sell\');return false">＋ Mete yon anons</button></div>'+nav('market')+'</section>'}
-function sell(){if(!session)return '<section class="screen">'+top('Vann sou Marketplace','Konekte anvan',true)+'<div class="content"><div class="card"><p>Ou bezwen konekte pou mete yon anons.</p><button type="button" class="btn blue" onclick="go(\'login\');return false">Konekte</button></div></div></section>';return '<section class="screen fade">'+top('Nouvo anons','Marketplace',true)+'<div class="content"><div class="card"><label>Non pwodwi<input class="input" placeholder="Egzanp: Telefòn"></label><label>Pri<input class="input" placeholder="HTG"></label><label>Deskripsyon<textarea class="input" rows="5" placeholder="Dekri pwodwi a"></textarea></label><button type="button" class="btn primary" onclick="toast(\'Anons lan pare pou konekte ak baz done a.\')">Pibliye</button></div></div></section>'}
-function chat(){return '<section class="screen fade">'+top('Chat','Mesaj ou yo',true)+'<div class="content"><div class="chatbox"><div class="bubble">👋 Byenveni sou Ti Kanè m.</div><div class="bubble">Kijan nou ka ede w jodi a?</div><div class="bubble me">Mwen bezwen enfòmasyon sou plan yo.</div></div><div class="chat-input"><input class="input" placeholder="Ekri mesaj ou..."><button type="button" class="btn blue" style="width:auto;margin:0">➤</button></div></div>'+nav('chat')+'</section>'}
-function profile(){const name=session?.user?.user_metadata?.full_name||profileData?.full_name||'Vizitè';return '<section class="screen fade">'+top('Pwofil','Kont mwen',true)+'<div class="content"><div class="profile-head"><div class="avatar">'+safe(name.charAt(0).toUpperCase())+'</div><div><h2 style="margin:0">'+safe(name)+'</h2><small>'+safe(session?.user?.email||'Mòd envite')+'</small></div></div><div class="menu"><button type="button" onclick="go(\'orders\');return false">📋 &nbsp; Kòmand mwen yo</button><button type="button" onclick="go(\'settings\');return false">⚙️ &nbsp; Anviwònman</button>'+(session?'<button type="button" onclick="logout();return false">🚪 &nbsp; Dekonekte</button>':'<button type="button" onclick="go(\'login\');return false">🔐 &nbsp; Konekte</button>')+'</div></div>'+nav('profile')+'</section>'}
-function orders(){return '<section class="screen fade">'+top('Kòmand mwen yo','Suivi aktivite ou',true)+'<div class="content"><div class="card empty"><div style="font-size:45px">📋</div><h3>Pa gen kòmand ankò</h3><p>Chwazi yon plan pou premye kòmand ou.</p><button type="button" class="btn primary" onclick="go(\'plans\');return false">Gade plan yo</button></div></div></section>'}
-function settings(){return '<section class="screen fade">'+top('Anviwònman','Preferans aplikasyon an',true)+'<div class="content"><div class="menu"><button type="button">🔒 &nbsp; Sekirite kont</button><button type="button">🌐 &nbsp; Lang: Kreyòl ayisyen</button><button type="button">🔔 &nbsp; Notifikasyon</button><button type="button">ℹ️ &nbsp; Sou Ti Kanè m</button></div><div class="card" style="margin-top:14px"><b>Ti Kanè m</b><p class="muted">Sere jodi, bati demen.</p></div></div></section>'}
-async function loadUser(){
-  if(!sb)return;
-
-  try{
-    const {data,error}=await sb.auth.getSession();
-
-    if(error){
-      console.error('Session error:',error);
-      session=null;
-      profileData=null;
-      return;
-    }
-
-    session=data.session || null;
-  }catch(e){
-    console.error('Session error:',e);
-    session=null;
-    profileData=null;
-    return;
-  }
-
-  profileData=null;
-
-  if(session){
-    try{
-      const {data,error}=await sb
-        .from('profiles')
-        .select('*')
-        .eq('user_id',session.user.id)
-        .maybeSingle();
-
-      if(!error){
-        profileData=data || null;
-      }else{
-        console.warn('Profile error:',error);
-      }
-    }catch(e){
-      console.warn('Profile error:',e);
-    }
-  }
-}
-async function doLogin(){if(!sb)return toast('Sèvis koneksyon an poko disponib');const e=document.getElementById('loginEmail').value.trim(),p=document.getElementById('loginPass').value;if(!e||!p)return toast('Mete imèl ak modpas');const r=await sb.auth.signInWithPassword({email:e,password:p});if(r.error)return toast(r.error.message);await loadUser();toast('Koneksyon reyisi ✔');go('home')}
-async function doRegister(){if(!sb)return toast('Sèvis enskripsyon an poko disponib');const n=document.getElementById('regName').value.trim(),e=document.getElementById('regEmail').value.trim(),p=document.getElementById('regPhone').value.trim(),pw=document.getElementById('regPass').value;if(n.length<2||!e||pw.length<6)return toast('Tanpri ranpli enfòmasyon yo');const r=await sb.auth.signUp({email:e,password:pw,options:{data:{full_name:n,phone:p}}});if(r.error)return toast(r.error.message);toast(r.data.session?'Kont kreye ✔':'Verifye imèl ou ✔');go(r.data.session?'home':'login')}
-async function confirmOrder(){if(!sb||!session)return toast('Koneksyon Supabase pa disponib');const n=document.getElementById('orderName').value.trim(),p=document.getElementById('orderPhone').value.trim(),d=document.getElementById('orderDate').value;if(!n||!p||!d)return toast('Ranpli non, telefòn ak dat');const r=await sb.from('customer_plans').insert({user_id:session.user.id,plan_id:selected[0]+'-'+selected[1],full_name:n,phone:p,start_date:d});if(r.error)return toast(r.error.message);toast('Kòmand lan voye ✔');go('orders')}
-async function logout(){if(sb)await sb.auth.signOut();session=null;profileData=null;go('welcome')}
-async function go(page){const map={welcome,login,register,home,plans,fixed,detail,order,market,sell,chat,profile,orders,settings};const f=map[page]||welcome;try{app.innerHTML=await f();window.scrollTo(0,0)}catch(e){console.error(e);app.innerHTML=welcome()}}
-async function start(){
-  try{
-    if(window.supabase?.createClient && window.TIKANE_SUPABASE?.url){
-      sb=window.supabase.createClient(
-        window.TIKANE_SUPABASE.url,
-        window.TIKANE_SUPABASE.anonKey
-      );
-
-      await loadUser();
-
-      if(session){
-        go('home');
-        return;
-      }
-    }
-  }catch(e){
-    console.error('Supabase init:',e);
-  }
-
-  go('welcome');
-}window.addEventListener('DOMContentLoaded',start,{once:true});
+function sell(){return '<section class="screen fade">'+top('Nouvo anons','Marketplace',true)+'<div class="content"><div class="card"><label>Non pwodwi<input class="input" placeholder="Egzanp: Telefòn"></label><label>Pri<input class="input" placeholder="HTG"></label><label>Deskripsyon<textarea class="input" rows="5" placeholder="Dekri pwodwi a"></textarea></label><button type="button" class="btn primary" onclick="toast(\'Anons lan pare pou konekte ak baz done a.\');return false">Pibliye</button></div></div></section>'}
+function chat(){return '<section class="screen fade">'+top('Chat','Mesaj ou yo',true)+'<div class="content"><div class="chatbox"><div class="bubble">👋 Byenveni sou Ti Kanè m.</div><div class="bubble">Kijan nou ka ede w jodi a?</div><div class="bubble me">Mwen bezwen enfòmasyon sou plan yo.</div></div><div class="chat-input"><input class="input" placeholder="Ekri mesaj ou..."><button type="button" class="btn blue" style="width:auto;margin:0" onclick="toast(\'Mesaj la pare.\');return false">➤</button></div></div>'+nav('chat')+'</section>'}
+function profile(){const name=session?.user?.user_metadata?.full_name||profileData?.full_name||'Vizitè';return '<section class="screen fade">'+top('Pwofil','Kont mwen',true)+'<div class="content"><div class="profile-head"><div class="avatar">'+safe(name.charAt(0).toUpperCase())+'</div><div><h2 style="margin:0">'+safe(name)+'</h2><small>'+safe(session?.user?.email||'Mòd envite')+'</small></div></div><div class="menu"><button type="button" onclick="go(\'orders\');return false">📋 &nbsp; Kòmand mwen yo</button><button type="button" onclick="go(\'settings\');return false">⚙️ &nbsp; Anviwònman</button><button type="button" onclick="'+(session?'logout()':'go(\'login\')')+';return false">'+(session?'🚪 &nbsp; Dekonekte':'🔐 &nbsp; Konekte')+'</button></div></div>'+nav('profile')+'</section>'}
+function orders(){return '<section class="screen fade">'+top('Kòmand mwen yo','Lis kòmand yo',true)+'<div class="content"><div class="card"><h2>Pa gen kòmand ankò</h2><p class="muted">Kòmand ou yo ap parèt isit la.</p><button type="button" class="btn primary" onclick="go(\'plans\');return false">Gade plan yo</button></div></div></section>'}
+function settings(){return '<section class="screen fade">'+top('Anviwònman','Ti Kanè m',true)+'<div class="content"><div class="card"><h3>Lang</h3><p class="muted">Kreyòl • Français • English</p><h3>Kont</h3><p class="muted">Jere enfòmasyon kont ou.</p></div></div></section>'}
+async function go(page){const map={welcome,login,register,home,plans,fixed,detail,order,market,sell,chat,profile,orders,settings};const f=map[page]||welcome;try{app.innerHTML=await f();window.scrollTo(0,0);history.replaceState(null,'','#'+page)}catch(e){console.error(e);app.innerHTML=welcome()}}
+async function loadSupabase(){try{if(sb)return sb;if(!window.supabase?.createClient)return null;const c=window.TIKANE_SUPABASE;if(!c?.url||!c?.anonKey)return null;sb=window.supabase.createClient(c.url,c.anonKey);const r=await sb.auth.getSession();session=r.data.session;return sb}catch(e){console.warn(e);return null}}
+async function doLogin(){const email=document.getElementById('loginEmail')?.value.trim(),pass=document.getElementById('loginPass')?.value;if(!email||!pass)return toast('Ranpli imèl ak modpas la.');const s=await loadSupabase();if(!s)return toast('Koneksyon sèvis la poko disponib.');const r=await s.auth.signInWithPassword({email,password:pass});if(r.error)return toast(r.error.message);session=r.data.session;toast('Byenveni!');go('home')}
+async function doRegister(){const name=document.getElementById('regName')?.value.trim(),email=document.getElementById('regEmail')?.value.trim(),phone=document.getElementById('regPhone')?.value.trim(),pass=document.getElementById('regPass')?.value;if(!name||!email||!pass)return toast('Ranpli non, imèl ak modpas la.');if(pass.length<6)return toast('Modpas la dwe gen omwen 6 karaktè.');const s=await loadSupabase();if(!s)return toast('Koneksyon sèvis la poko disponib.');const r=await s.auth.signUp({email,password:pass,options:{data:{full_name:name,phone}}});if(r.error)return toast(r.error.message);session=r.data.session;if(session)go('home');else toast('Kont lan kreye. Verifye imèl ou.')}
+async function logout(){const s=await loadSupabase();if(s)await s.auth.signOut();session=null;profileData=null;go('welcome')}
+function confirmOrder(){toast('Kòmand lan pare pou konekte ak baz done a.')}
+window.go=go;window.doLogin=doLogin;window.doRegister=doRegister;window.logout=logout;window.confirmOrder=confirmOrder;window.selectPlan=selectPlan;window.toast=toast;
+document.getElementById('welcomeLogin').addEventListener('click',()=>go('login'));document.getElementById('welcomeRegister').addEventListener('click',()=>go('register'));document.getElementById('welcomeGuest').addEventListener('click',()=>go('home'));
+window.addEventListener('hashchange',()=>{const p=(location.hash||'').slice(1).split('?')[0];if(p&&['welcome','login','register','home','plans','fixed','detail','order','market','sell','chat','profile','orders','settings'].includes(p))go(p)});
+(async()=>{const p=(location.hash||'').slice(1).split('?')[0];await loadSupabase();if(p&&['welcome','login','register','home','plans','fixed','detail','order','market','sell','chat','profile','orders','settings'].includes(p))go(p);else go('welcome')})();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="public/supabase-config.js?v=4"></script>
 </body>
 </html>
