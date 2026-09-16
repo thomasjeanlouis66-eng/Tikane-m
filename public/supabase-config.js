@@ -14,6 +14,21 @@ window.TIKANE_SUPABASE = {
     const page = decodeURIComponent((location.hash || '').slice(1)).split('?')[0];
     if(routes.has(page) && typeof window.go === 'function') window.go(page);
   }
-  window.addEventListener('DOMContentLoaded', function(){ setTimeout(routeFromHash, 0); }, {once:true});
+  window.addEventListener('DOMContentLoaded', function(){
+    setTimeout(routeFromHash, 0);
+
+    // Fallback for the welcome-screen buttons. This keeps Konekte/Enskri
+    // working even if an inline onclick is not executed by the browser.
+    document.addEventListener('click', function(event){
+      const button = event.target.closest('button');
+      if(!button || !button.closest('.welcome')) return;
+      const text = button.textContent.trim();
+      if(text === 'Konekte' || text === 'Enskri'){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if(typeof window.go === 'function') window.go(text === 'Konekte' ? 'login' : 'register');
+      }
+    }, true);
+  }, {once:true});
   window.addEventListener('hashchange', routeFromHash);
 })();
